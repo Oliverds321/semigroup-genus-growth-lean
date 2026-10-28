@@ -1,0 +1,393 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=28mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,microtype}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={An exponential bound for generalized numerical semigroups of fixed dimension},
+  pdfauthor={Oliver D'Souza}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\N}{\mathbb N_0}
+\newcommand{\R}{\mathbb R}
+\newcommand{\ind}{\mathbf 1}
+\DeclareMathOperator{\Max}{Max}
+\title{An exponential bound for generalized numerical semigroups of fixed dimension}
+\author{Oliver D'Souza\thanks{Copyright \textcopyright\ 2026 Oliver D'Souza.
+This paper is licensed under
+\href{https://creativecommons.org/licenses/by/4.0/}{Creative Commons Attribution 4.0 International (CC BY 4.0)}.}}
+\date{}
+\begin{document}
+\maketitle
+\begin{abstract}
+Let $n_{g,d}$ be the number of cofinite additive submonoids of $\N^d$ with
+complement of cardinality $g$. For each fixed $d$, we prove
+$n_{g,d}=2^{O_d(g)}$, answering Question~49 of Li. The main estimate bounds
+the entire coordinatewise downclosure of the complement by $4^{d+1}g$.
+We apply classical maximal-average estimates to the local density supplied
+by reflection, and give an elementary finite proof using Abel summation.
+A closed-word encoding of downsets gives an explicit exponential bound.
+The core argument is formalized in Lean. A separate, not yet formalized
+section gives a smaller upper growth constant using elementary downset
+estimates weaker than known results in multidimensional partition theory.
+\end{abstract}
+
+\section{The counting problem}
+A generalized numerical semigroup of dimension $d\ge1$ is a submonoid
+$S\subseteq\N^d$ with finite complement $G(S)=\N^d\setminus S$.
+Thus $0\in S$ and $S+S\subseteq S$. Its genus is $g(S)=|G(S)|$.
+We count submonoids as subsets of the fixed coordinate lattice, and write
+\[
+ n_{g,d}=|\{S\subseteq\N^d:S\text{ is a generalized numerical semigroup
+ and }g(S)=g\}|.
+\]
+In particular, coordinates are labelled; this is not a count of isomorphism
+classes. Dimension is fixed in assertions about growth as $g\to\infty$.
+For foundational algorithms and asymptotics, see
+Failla--Peterson--Utano~\cite{FPU}.
+
+Li~\cite[Theorem~2]{Li} proved
+$n_{g,d}^{1/g}<(2e+o(1))(\log g)^{d-1}$ and asked
+in~\cite[Question~49, p.~23]{Li} whether $n_{g,d}^{1/g}$ is bounded.
+The following theorem answers this question. It does not assert convergence
+of these roots or identify their optimal upper bound.
+
+\begin{theorem}\label{thm:main}
+For integers $d,g\ge1$, put $C_d=4^{d+1}$ and $B_d=8d^2$. Then
+\begin{equation}\label{eq:main}
+ n_{g,d}\le \frac{B_d^{C_dg}-1}{B_d-1}<B_d^{C_dg}.
+\end{equation}
+In particular, $n_{g,d}=2^{O_d(g)}$ for each fixed $d$.
+For $g=0$, one has $n_{0,d}=1$.
+\end{theorem}
+
+The gap downclosure and the reflection injection used below already appear
+in Cisto et al.~\cite[pp.~3--4 of the preprint]{CDF}, and the half-prism
+estimate is used by Li~\cite[Proposition~35]{Li}. We retain its local
+density information to obtain a dimension-only linear bound on the entire
+gap downclosure and then apply it to genus enumeration. The analytic input
+is classical maximal-average theory; see Hardy--Littlewood~\cite{HL} and
+Jessen--Marcinkiewicz--Zygmund~\cite{JMZ}. All estimates needed for
+Theorem~\ref{thm:main} are proved below using finite sums.
+
+\paragraph{Formalization scope.}
+Theorem~\ref{thm:main}, Lemmas~\ref{lem:prefix}, \ref{lem:box}, and
+\ref{lem:walk}, and Proposition~\ref{prop:volume} have Lean proofs with
+Lean~4.24.0 and a pinned mathlib dependency. Finiteness of the counted
+family is established before its cardinality is used. Remark~\ref{rem:example}
+and Section~\ref{sec:optional} are outside the formalization.
+The accompanying theorem correspondence specifies the declarations and
+boundary cases. The repository for the formalization is
+\url{https://github.com/Oliverds321/semigroup-genus-growth-lean}.
+
+\section{A finite maximal-average estimate}
+\begin{lemma}\label{lem:prefix}
+Let $f_1,\ldots,f_L$ be nonnegative real numbers, where $L\ge1$. Set
+\[
+ F_k=\sum_{j=1}^k f_j,\qquad
+ a_k=\max_{k\le n\le L}\frac{F_n}{n}\quad(1\le k\le L).
+\]
+Then
+\begin{equation}\label{eq:prefix}
+ \sum_{k=1}^L a_k^2\le4\sum_{k=1}^L f_k^2.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Set $a_{L+1}=0$. The sequence $(a_k)$ is nonnegative and nonincreasing.
+If $a_k>a_{k+1}$, a maximizing index must be $k$, since every larger
+index also occurs in the maximum for $a_{k+1}$. Thus $ka_k=F_k$ at
+every strict drop. At other indices, $a_k-a_{k+1}=0$. Weighted
+telescoping and Abel summation give
+\begin{align*}
+ A:=\sum_{k=1}^L a_k^2
+ &=\sum_{k=1}^L k(a_k^2-a_{k+1}^2)\\
+ &\le2\sum_{k=1}^L ka_k(a_k-a_{k+1})
+ =2\sum_{k=1}^L F_k(a_k-a_{k+1})
+ =2\sum_{j=1}^L f_ja_j.
+\end{align*}
+Put $E=\sum_j f_j^2$ and $H=\sum_j f_ja_j$. Squared
+Cauchy--Schwarz gives $H^2\le EA$, so $A^2\le4H^2\le4EA$.
+If $A=0$ the conclusion is immediate; otherwise division by $A$
+proves~\eqref{eq:prefix}.
+\end{proof}
+
+Fix integers $d,L\ge1$ and use the common finite cube
+\[
+ Q=\{0,\ldots,L-1\}^d,\qquad L\ge1.
+\]
+For nonnegative $f:Q\to\R$, define the coordinate operators
+\begin{equation}\label{eq:operator}
+ (A_i f)(x)=\max_{x_i<n\le L}\frac1n
+ \sum_{j=0}^{n-1}f(x_1,\ldots,x_{i-1},j,x_{i+1},\ldots,x_d).
+\end{equation}
+Applying Lemma~\ref{lem:prefix} on each line and summing gives
+\begin{equation}\label{eq:tensor}
+ \sum_{x\in Q}(A_i f(x))^2\le4\sum_{x\in Q}f(x)^2,
+ \qquad
+ \sum_{x\in Q}(A_1\cdots A_d f(x))^2\le4^d\sum_{x\in Q}f(x)^2.
+\end{equation}
+The rightmost operator acts first. The common cube is sufficient for the
+application below; the origin boxes inside it may have unequal side lengths.
+
+\begin{lemma}\label{lem:box}
+For $h\in Q$, let $R_h=\prod_{i=1}^d\{0,\ldots,h_i\}$.
+For every nonnegative $f$ on $Q$ and every $x\in R_h$,
+\begin{equation}\label{eq:box}
+ (A_1\cdots A_d f)(x)\ge\frac1{|R_h|}\sum_{y\in R_h}f(y).
+\end{equation}
+\end{lemma}
+\begin{proof}
+In $A_d$, select the admissible prefix of length $h_d+1$. The resulting
+lower bound holds at every point whose last coordinate is at most $h_d$.
+Next select the prefix of length $h_{d-1}+1$ in $A_{d-1}$ and average
+the lower bound already obtained. Continue through coordinate~1. At each
+step, every point being averaged satisfies the coordinate restrictions
+needed at the previous steps. The final expression is the average over
+$R_h$. This proves box domination separately from the norm estimate;
+no commutation of coordinate operators is needed.
+\end{proof}
+
+\section{The size of the gap downclosure}
+Use the coordinatewise order on $\N^d$. For a finite set $G\subseteq\N^d$,
+define
+\[
+ \mathord\downarrow G=\{x\in\N^d:x\le h\text{ for some }h\in G\}.
+\]
+This is a finite downset. In the notation of Cisto et al.~\cite{CDF},
+it is $C(S)$ when $G=G(S)$, and its cardinality is $c(S)$.
+
+\begin{proposition}\label{prop:volume}
+Let $S\subseteq\N^d$ be a generalized numerical semigroup of genus $g\ge1$.
+Then
+\begin{equation}\label{eq:volume}
+ |\mathord\downarrow G(S)|\le4^{d+1}g.
+\end{equation}
+\end{proposition}
+\begin{proof}
+Write $G=G(S)$ and $D=\mathord\downarrow G$. For each $h\in G$,
+the reflection $s\mapsto h-s$ maps $S\cap R_h$ injectively into
+$G\cap R_h$. Here subtraction is restricted to $s\le h$.
+If both $s$ and $h-s$ belonged to $S$, closure under addition would
+give $h\in S$. Consequently,
+\begin{equation}\label{eq:density}
+ |R_h|\le2|G\cap R_h|\le2g.
+\end{equation}
+For every coordinate $i$, the coordinate line in $R_h$ gives
+$h_i+1\le|R_h|\le2g$. Hence the common cube with side $L=2g$
+contains $G$, $D$, and every $R_h$ for $h\in G$.
+This coordinate bound also proves finiteness of the genus-$g$ family:
+its gap sets lie among the subsets of a fixed finite cube, and each gap
+set determines its submonoid.
+
+Put $f=\ind_G$ on this cube. Every $x\in D$ lies in $R_h$ for some
+$h\in G$. By Lemma~\ref{lem:box} and~\eqref{eq:density},
+$(A_1\cdots A_d f)(x)\ge1/2$. Therefore~\eqref{eq:tensor} gives
+\[
+ \frac{|D|}{4}\le\sum_{x\in Q}(A_1\cdots A_d f(x))^2
+ \le4^d\sum_{x\in Q}f(x)^2=4^dg.
+\]
+\end{proof}
+
+The qualitative bound $|\mathord\downarrow G|=O_d(|G|)$ also follows
+from classical fixed-threshold indicator halo bounds. Extend $\ind_G$
+by zero to $\mathbb Z^d$. Reflection gives
+\[
+ \mathord\downarrow G\subseteq
+ \{x:\widetilde M_S\ind_G(x)>1/3\},
+\]
+where $\widetilde M_S$ is the discrete strong maximal operator. Its
+Tauberian constant at this fixed threshold is finite; see
+Hagelstein--Parissis~\cite[Lemma~1]{HP}. The finite argument above gives
+the explicit constant $4^{d+1}$ without using measure theory.
+
+\begin{remark}\label{rem:example}
+The constant in~\eqref{eq:volume} is not intended to be sharp.
+The one-dimensional bound $|\mathord\downarrow G(S)|\le2g$ does not
+persist unchanged in dimension two. For example, the complement of
+\[
+ G=\{(1,0),(2,0),(2,1),(5,0)\}
+\]
+is a submonoid of $\N^2$, whereas $|G|=4$ and
+$|\mathord\downarrow G|=9$. Every decomposition of a point of $G$
+into two nonzero nonnegative lattice points has at least one summand
+in $G$, which verifies closure of the complement.
+\end{remark}
+
+\newpage
+\section{An explicit exponential bound}
+\begin{lemma}\label{lem:walk}
+For $N\ge1$, the number of finite downsets in $\N^d$ of cardinality $N$
+is at most $(2d)^{2(N-1)}$.
+\end{lemma}
+\begin{proof}
+Every nonempty downset contains the origin. We show by induction on $N$
+that it is the visited set of a closed word of $2(N-1)$ unit directions,
+starting at the origin. The singleton origin has the empty word. Otherwise
+choose a maximal nonzero point $v$ of the downset $D$. Deleting $v$
+leaves a downset $D'$ containing the origin. Choose a coordinate $i$
+with $v_i>0$. The predecessor $u=v-e_i$ belongs to $D'$. By induction,
+a closed word visits exactly $D'$. Split it at a visit to $u$ and insert
+the two moves $+e_i,-e_i$. The resulting word is closed, visits exactly
+$D$, and has the required length.
+
+For each downset choose one such word. Evaluating its directions from
+the origin recovers the visited set, so this choice is injective. There
+are $(2d)^{2(N-1)}$ words of that length. Words that do not describe a
+valid downset traversal may simply be included in this upper bound.
+\end{proof}
+
+Stronger bounds for lower sets are known. In particular,
+Dai et al.~\cite[Theorem~1.4]{DPSTT} give $d^{N-1}$ for $d\ge2$;
+their Theorem~1.5 gives subexponential growth for fixed dimension.
+The elementary word bound suffices here and is the one formalized.
+The deletion-and-excursion proof above is also the proof used in Lean;
+a depth-first traversal of a spanning tree gives another word encoding.
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+For genus $g\ge1$, Proposition~\ref{prop:volume} places the gap
+downclosure $D$ among the downsets of sizes $1\le N\le C_dg$.
+For each $D$, at most $2^{N-1}$ subsets can be gap sets, since the
+origin cannot be a gap. Including subsets that fail additive closure
+only enlarges the upper bound. Lemma~\ref{lem:walk} gives
+\[
+ n_{g,d}\le\sum_{N=1}^{C_dg}(2d)^{2(N-1)}2^{N-1}
+ =\sum_{k=0}^{C_dg-1}B_d^k
+ =\frac{B_d^{C_dg}-1}{B_d-1}<B_d^{C_dg},
+\]
+where the last inequality uses $B_d\ge2$. Thus
+$n_{g,d}<(B_d^{C_d})^g$. An empty complement forces $S=\N^d$,
+giving $n_{0,d}=1$.
+\end{proof}
+
+\section{A smaller upper growth constant}\label{sec:optional}
+\textit{This section is proved mathematically below but is not yet included
+in the Lean formalization.}
+The preceding proof already settles boundedness of the genus roots.
+The following separate downset estimate improves the resulting constant.
+These are established topics in multidimensional partition theory:
+downsets in $\N^d$ are $(d-1)$-dimensional partition diagrams.
+Oganesyan~\cite[Lemma~1 and Theorem~1]{Oganesyan} proves stronger
+maximal-element and counting estimates, including the fixed-$d$ bound
+$\log p_d(N)=O_d(N^{1-1/d})$ for the number $p_d(N)$ of downsets of
+size exactly $N$. We include a short elementary proof of weaker bounds
+sufficient here.
+
+\begin{lemma}\label{lem:optional}
+For each $d\ge1$ there is a constant $a_d$ such that a nonempty finite
+downset $D\subseteq\N^d$ of size $N$ has at most $a_dN^{1-1/d}$
+maximal elements. The number $P_d(M)$ of nonempty downsets of size at
+most an integer $M\ge1$ satisfies
+\begin{equation}\label{eq:optional}
+ P_d(M)\le\exp\bigl(O_d(M^{1-1/d}\log(M+2))\bigr).
+\end{equation}
+\end{lemma}
+\begin{proof}
+For $d=1$ a nonempty downset is an interval with one maximal element,
+and $P_1(M)=M$. For the induction step let $d\ge2$ and
+$L=\lceil N^{1/d}\rceil$. Every point of $D$ has some coordinate
+less than $L$; otherwise its down-box would have at least $(L+1)^d>N$
+points. For coordinate $i$ and $0\le k<L$, let $D_{i,k}$ be the
+$(d-1)$-dimensional downset obtained by taking the slice $x_i=k$,
+and put $N_{i,k}=|D_{i,k}|$. A maximal point in that slice projects
+to a maximal point of $D_{i,k}$. Thus the induction hypothesis gives
+\[
+ |\Max D|\le a_{d-1}\sum_{i=1}^d
+ \sum_{\substack{0\le k<L\\N_{i,k}>0}}N_{i,k}^{(d-2)/(d-1)}.
+\]
+For $d>2$, concavity and $\sum_{k<L}N_{i,k}\le N$ bound each inner
+sum by $L^{1/(d-1)}N^{(d-2)/(d-1)}$. For $d=2$, the sum counts
+nonempty slices and is at most $L$, yielding the same bound without
+a $0^0$ convention. Since $L\le2N^{1/d}$,
+\[
+ |\Max D|\le d\,a_{d-1}2^{1/(d-1)}N^{1-1/d}.
+\]
+For example, $a_d=2^{d-1}d!$ suffices.
+
+Every downset of size at most $M$ lies in $\{0,\ldots,M-1\}^d$:
+a coordinate of size $M$ would force at least $M+1$ points on a line
+below it. It is determined by its maximal elements, whose number is at
+most $K=\lceil a_dM^{1-1/d}\rceil$. Consequently, for $d\ge2$,
+\[
+ P_d(M)\le\sum_{k=0}^K\binom{M^d}{k}\le(K+1)(M^d)^K,
+\]
+with binomial coefficients zero when $k>M^d$. Taking logarithms
+proves~\eqref{eq:optional}.
+\end{proof}
+
+\begin{corollary}\label{cor:optional}
+For every fixed $d\ge1$, with $C_d=4^{d+1}$,
+\begin{equation}\label{eq:growth}
+ \limsup_{g\to\infty}n_{g,d}^{1/g}
+ \le\frac{C_d^{C_d}}{(C_d-1)^{C_d-1}}<eC_d.
+\end{equation}
+\end{corollary}
+\begin{proof}
+There are at most $P_d(C_dg)$ possible gap downclosures, and any one
+admits at most $\binom{C_dg}{g}$ subsets of size $g$. Hence
+\[
+ n_{g,d}\le P_d(C_dg)\binom{C_dg}{g}.
+\]
+Lemma~\ref{lem:optional} gives $\log P_d(C_dg)=o(g)$ for fixed $d$.
+For any fixed integer $C>1$, Stirling's formula gives
+\[
+ \lim_{g\to\infty}\binom{Cg}{g}^{1/g}
+ =\frac{C^C}{(C-1)^{C-1}}.
+\]
+Finally, $C^C/(C-1)^{C-1}=C(1+1/(C-1))^{C-1}<eC$.
+\end{proof}
+
+\paragraph{Acknowledgement.}
+AI tools assisted with development, auditing, formalization, and manuscript
+preparation; the author is responsible for the mathematical claims and submission.
+
+\clearpage
+\begin{thebibliography}{9}
+\bibitem{CDF}
+C. Cisto, M. DiPasquale, G. Failla, Z. Flores, C. Peterson, and R. Utano,
+A generalization of Wilf's conjecture for generalized numerical semigroups,
+\emph{Semigroup Forum} \textbf{101} (2020), 303--325.
+\href{https://doi.org/10.1007/s00233-020-10085-7}{doi:10.1007/s00233-020-10085-7}.
+\href{https://arxiv.org/abs/1909.13120}{arXiv:1909.13120}.
+\bibitem{DPSTT}
+F. Dai, A. Prymak, A. Shadrin, V. Temlyakov, and S. Tikhonov,
+On the cardinality of lower sets and universal discretization,
+\emph{Journal of Complexity} \textbf{76} (2023), 101726.
+\href{https://doi.org/10.1016/j.jco.2022.101726}{doi:10.1016/j.jco.2022.101726}.
+\href{https://arxiv.org/abs/2208.02113}{arXiv:2208.02113}.
+\bibitem{FPU}
+G. Failla, C. Peterson, and R. Utano,
+Algorithms and basic asymptotics for generalized numerical semigroups in $\mathbb N^d$,
+\emph{Semigroup Forum} \textbf{92} (2016), 460--473.
+\href{https://doi.org/10.1007/s00233-015-9690-8}{doi:10.1007/s00233-015-9690-8}.
+\bibitem{HP}
+P. Hagelstein and I. Parissis,
+H\"older continuity of Tauberian constants associated with discrete and ergodic strong maximal operators,
+\emph{New York Journal of Mathematics} \textbf{23} (2017), 1219--1236.
+\href{https://nyjm.albany.edu/j/2017/23-53p.pdf}{Published version}.
+\href{https://arxiv.org/abs/1612.00822}{arXiv:1612.00822}.
+\bibitem{HL}
+G. H. Hardy and J. E. Littlewood,
+A maximal theorem with function-theoretic applications,
+\emph{Acta Mathematica} \textbf{54} (1930), 81--116.
+\href{https://doi.org/10.1007/BF02547518}{doi:10.1007/BF02547518}.
+\bibitem{JMZ}
+B. Jessen, J. Marcinkiewicz, and A. Zygmund,
+Note on the differentiability of multiple integrals,
+\emph{Fundamenta Mathematicae} \textbf{25} (1935), 217--234.
+\href{https://doi.org/10.4064/fm-25-1-217-234}{doi:10.4064/fm-25-1-217-234}.
+\bibitem{Li}
+S. Li, On the Number of Generalized Numerical Semigroups,
+\emph{Electronic Journal of Combinatorics} \textbf{32}(3) (2025), P3.25.
+\href{https://doi.org/10.37236/12287}{doi:10.37236/12287}.
+\bibitem{Oganesyan}
+K. Oganesyan, Bounds for the number of multidimensional partitions,
+\emph{European Journal of Combinatorics} \textbf{120} (2024), 103982.
+\href{https://doi.org/10.1016/j.ejc.2024.103982}{doi:10.1016/j.ejc.2024.103982}.
+\href{https://arxiv.org/abs/2303.14397}{arXiv:2303.14397}.
+\end{thebibliography}
+\end{document}
